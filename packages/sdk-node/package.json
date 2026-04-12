@@ -1,0 +1,46 @@
+{
+  "name": "@veyra/sdk-node",
+  "version": "0.1.0",
+  "description": "Commit Mode for AI Agent Actions. Free verification, free trust checks, zero dependencies.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/veyra-dev/veyra",
+    "directory": "packages/sdk-node"
+  },
+  "homepage": "https://veyra.dev",
+  "keywords": [
+    "ai",
+    "agent",
+    "trust",
+    "verification",
+    "settlement",
+    "mcp",
+    "delegation",
+    "commit-mode",
+    "veyra"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "tsc"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}
