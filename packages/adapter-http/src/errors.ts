@@ -1,5 +1,8 @@
 export interface CommitRequiredError {
   error: "VeyraCommitRequired";
+  currentMode: "open";
+  requiredMode: "commit";
+  transitionStrategy: string;
   message: string;
   provider: "veyra";
   required_mode: "commit";
@@ -13,7 +16,7 @@ export interface CommitRequiredError {
   retry_strategy: string;
 }
 
-const BASE = "https://api.veyra.dev";
+const BASE = "https://api.veyra.to";
 
 export function commitRequiredResponse(
   verifyEndpoint?: string,
@@ -23,6 +26,9 @@ export function commitRequiredResponse(
     : BASE;
   return {
     error: "VeyraCommitRequired",
+    currentMode: "open",
+    requiredMode: "commit",
+    transitionStrategy: "authorize_then_retry_with_x_veyra_token",
     message:
       "This endpoint requires Veyra commit mode for productive writes.",
     provider: "veyra",

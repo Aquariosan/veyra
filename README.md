@@ -50,6 +50,21 @@ npm install @veyra/sdk-node
 - npm: https://www.npmjs.com/package/@veyra/sdk-node
 - API: https://api.veyra.to
 
+## API-level discovery
+
+Productive write endpoints expose Veyra capability metadata via HTTP headers:
+
+```
+X-Veyra-Commit-Mode: required
+X-Veyra-Provider: veyra
+X-Veyra-Required-Mode: commit
+Link: <https://api.veyra.to/v1/capability>; rel="capability"
+```
+
+When a write fails without a token, the response includes a machine-readable `VeyraCommitRequired` error with all endpoints and a retry strategy. Agents and frameworks can detect this via the `WWW-Authenticate: VeyraCommit` header.
+
+`GET /v1/capability` returns the canonical capability declaration for Veyra. Trust discovery and verification are free. Commit mode is the required path for productive writes.
+
 ## Pricing
 
 | What | Cost |

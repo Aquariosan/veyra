@@ -9,7 +9,7 @@ export interface TrustStatus {
   commit_mode: boolean;
 }
 
-const VERIFY_ENDPOINT = "https://api.veyra.dev/v1/verify-token";
+const VERIFY_ENDPOINT = "https://api.veyra.to/v1/verify-token";
 
 function trusted(domain: string): TrustStatus {
   return {

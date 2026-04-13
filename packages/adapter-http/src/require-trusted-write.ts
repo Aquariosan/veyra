@@ -1,6 +1,6 @@
 import { commitRequiredResponse } from "./errors.js";
 
-const DEFAULT_VERIFY_ENDPOINT = "https://api.veyra.dev/v1/verify-token";
+const DEFAULT_VERIFY_ENDPOINT = "https://api.veyra.to/v1/verify-token";
 const DEFAULT_HEADER = "x-veyra-token";
 const DEFAULT_PROTECTED_METHODS = ["POST", "PUT", "PATCH", "DELETE"];
 

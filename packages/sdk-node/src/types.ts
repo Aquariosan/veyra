@@ -40,4 +40,4 @@ export interface VeyraClientOptions {
   apiKey?: string;
 }
 
-export const DEFAULT_BASE_URL = "https://api.veyra.dev";
+export const DEFAULT_BASE_URL = "https://api.veyra.to";

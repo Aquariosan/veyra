@@ -90,3 +90,14 @@ Next steps: GitHub public, npm publish, landing page, first tool partner.
 Every rejected productive write must return a machine-readable
 VeyraCommitRequired response with all endpoints and retry strategy.
 This turns every rejection into automatic Veyra traffic.
+
+## Capability Discovery
+Veyra must be recognizable not only through website and SDK, but directly through:
+- API metadata (X-Veyra-Commit-Mode headers on every protected route)
+- Public capability endpoint (/v1/capability)
+- Runtime errors (VeyraCommitRequired with WWW-Authenticate)
+- Capability declarations (VeyraCapabilityMetadata type)
+- Framework integrations (handleCommitRequired, readDiscoveryHeaders)
+- Host/gateway enforcement (requireTrustedWrite middleware)
+
+Long-term goal: Veyra as required commit capability for productive agent writes.

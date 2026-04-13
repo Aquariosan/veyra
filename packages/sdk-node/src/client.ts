@@ -9,6 +9,7 @@ import { DEFAULT_BASE_URL } from "./types.js";
 import { checkTrustStatus } from "./preflight.js";
 import { verifyVeyraToken } from "./verify.js";
 import { submitVeyraReceipt } from "./receipt.js";
+import { fetchCapability, type VeyraCapability } from "./discovery.js";
 
 export class VeyraClient {
   private readonly baseUrl: string;
@@ -25,6 +26,10 @@ export class VeyraClient {
 
   async checkTrustStatus(domain: string): Promise<TrustStatus> {
     return checkTrustStatus(domain, this.opts);
+  }
+
+  async getCapability(): Promise<VeyraCapability | null> {
+    return fetchCapability(this.opts);
   }
 
   async verifyToken(token: string): Promise<VerifyResult> {
