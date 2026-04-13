@@ -60,6 +60,23 @@ const auth = await veyra.authorizeAction(agentId, 'create_contact', 'crm')
 const receipt = await veyra.submitReceipt(token, 'http', { ok: true })
 ```
 
+## One-call commit automation
+
+Use `commitAwareFetch()` instead of `fetch()` when writing to endpoints
+that may require Veyra commit mode. It works exactly like `fetch()`, but
+if the target returns VeyraCommitRequired, it automatically authorizes
+the action and retries with a settlement token.
+
+```js
+import { commitAwareFetch } from '@veyrahq/sdk-node'
+
+const res = await commitAwareFetch('https://tool.com/api/write', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ name: 'Jane' }),
+}, { apiKey: 'tr_...', agentId: '...', actionType: 'create_contact', target: 'crm' })
+```
+
 ## MCP Server Card
 
 Declare your tool as Trusted Production Mode:

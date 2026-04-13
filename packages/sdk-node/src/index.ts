@@ -4,6 +4,8 @@ export { verifyVeyraToken } from "./verify.js";
 export { submitVeyraReceipt } from "./receipt.js";
 export { handleCommitRequired, isVeyraCommitRequired } from "./recovery.js";
 export type { RecoveryOptions, RecoveryResult } from "./recovery.js";
+export { commitAwareFetch } from "./commit-aware-fetch.js";
+export type { CommitAwareFetchOptions } from "./commit-aware-fetch.js";
 export { fetchCapability, readDiscoveryHeaders } from "./discovery.js";
 export type { VeyraCapability, VeyraDiscoveryHeaders } from "./discovery.js";
 export type {

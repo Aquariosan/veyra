@@ -112,10 +112,25 @@ Veyra earns only when real productive writes settle. Discovery and verification 
 | Class C settlement | 0.10 EUR/action |
 | Class D settlement | 0.25 EUR/action |
 
+## One-call commit automation
+
+```js
+import { commitAwareFetch } from '@veyrahq/sdk-node'
+
+const res = await commitAwareFetch('https://tool.com/api/contacts', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ name: 'Jane' }),
+}, { apiKey, agentId, actionType: 'create_contact', target: 'crm' })
+```
+
+Normal writes pass through directly. Protected productive writes transparently transition into commit mode through Veyra — one call, no manual recovery.
+
 ## Examples
 
 - [Fastify Protected Write](./examples/fastify-protected-write) — protect a write endpoint in 2 lines
 - [Agent Retry Flow](./examples/agent-retry-flow) — handle VeyraCommitRequired and auto-recover
+- [Generic Fetch Wrapper](./examples/generic-fetch-wrapper) — one-call commit automation
 
 ## License
 
