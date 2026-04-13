@@ -9,6 +9,7 @@ import { verifyTokenRoute } from "./routes/verify-token.js";
 import { submitReceiptRoute } from "./routes/submit-receipt.js";
 import { settleActionRoute } from "./routes/settle-action.js";
 import { trustStatusRoute } from "./routes/trust-status.js";
+import { billingRoute } from "./routes/billing.js";
 
 export async function buildApp() {
   const app = Fastify({ logger: { level: env.LOG_LEVEL } });
@@ -23,6 +24,7 @@ export async function buildApp() {
   await app.register(submitReceiptRoute);
   await app.register(settleActionRoute);
   await app.register(trustStatusRoute);
+  await app.register(billingRoute);
 
   return app;
 }
