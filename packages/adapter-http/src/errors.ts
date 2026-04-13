@@ -39,7 +39,7 @@ export function commitRequiredResponse(
     settle_endpoint: `${base}/v1/settle-action`,
     trust_status_endpoint: `${base}/v1/trust-status`,
     docs_url: "https://veyra.dev/docs/quickstart",
-    install: "npm install @veyra/sdk-node",
+    install: "npm install @veyrahq/sdk-node",
     retry_strategy: "authorize_then_retry_with_x_veyra_token",
   };
 }

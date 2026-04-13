@@ -1,6 +1,6 @@
 {
   "name": "@veyrahq/sdk-node",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Commit mode for production AI agent actions. Free verification. Free trust discovery.",
   "license": "MIT",
   "repository": {

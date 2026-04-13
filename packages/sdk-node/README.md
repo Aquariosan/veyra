@@ -1,4 +1,4 @@
-# @veyra/sdk-node
+# @veyrahq/sdk-node
 
 > Commit Mode for AI Agent Actions.
 > Free verification. Free trust checks. No registration needed.
@@ -21,7 +21,7 @@ With Veyra, every productive write is:
 ## Quick Start - Pre-Flight Check (1 line)
 
 ```js
-import { checkTrustStatus } from '@veyra/sdk-node'
+import { checkTrustStatus } from '@veyrahq/sdk-node'
 
 const status = await checkTrustStatus('salesforce.com')
 // -> { production_mode: "trusted", commit_mode: true }
@@ -30,7 +30,7 @@ const status = await checkTrustStatus('salesforce.com')
 ## Quick Start - Verify Token (1 line)
 
 ```js
-import { verifyVeyraToken } from '@veyra/sdk-node'
+import { verifyVeyraToken } from '@veyrahq/sdk-node'
 
 const result = await verifyVeyraToken(token)
 if (!result.valid) throw new Error('Unauthorized agent action')
@@ -47,7 +47,7 @@ app.use(requireTrustedWrite())
 ## Full Client
 
 ```js
-import { VeyraClient } from '@veyra/sdk-node'
+import { VeyraClient } from '@veyrahq/sdk-node'
 
 const veyra = new VeyraClient({ apiKey: 'tr_...' })
 

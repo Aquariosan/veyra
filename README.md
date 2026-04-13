@@ -20,7 +20,7 @@ Veyra is the trust, settlement and routing backbone for AI agent write actions. 
 ## For Tool Builders
 
 ```js
-import { requireTrustedWrite } from '@veyra/sdk-node'
+import { requireTrustedWrite } from '@veyrahq/sdk-node'
 app.post('/api/write', requireTrustedWrite(), handler)
 ```
 
@@ -30,7 +30,7 @@ Verification is free. You pay nothing.
 ## For Agent Developers
 
 ```js
-import { checkTrustStatus, handleCommitRequired } from '@veyra/sdk-node'
+import { checkTrustStatus, handleCommitRequired } from '@veyrahq/sdk-node'
 
 const status = await checkTrustStatus('salesforce.com')
 if (status.commit_mode) {
@@ -41,13 +41,13 @@ if (status.commit_mode) {
 ## Install
 
 ```bash
-npm install @veyra/sdk-node
+npm install @veyrahq/sdk-node
 ```
 
 ## Links
 
 - Website: https://veyra.to
-- npm: https://www.npmjs.com/package/@veyra/sdk-node
+- npm: https://www.npmjs.com/package/@veyrahq/sdk-node
 - API: https://api.veyra.to
 
 ## API-level discovery

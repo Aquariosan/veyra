@@ -18,7 +18,7 @@ const CAPABILITY = {
   retryStrategy: "authorize_then_retry_with_x_veyra_token",
   states: ["open", "pre-commit", "commit"] as const,
   defaultTransition: ["open", "pre-commit", "commit"] as const,
-  sdk: "npm install @veyra/sdk-node",
+  sdk: "npm install @veyrahq/sdk-node",
   docs: "https://veyra.to",
 } as const;
 

@@ -42,7 +42,7 @@ export function createCapabilityMetadata(
       capability: `${base}/v1/capability`,
     },
     retryStrategy: "authorize_then_retry_with_x_veyra_token",
-    sdk: "npm install @veyra/sdk-node",
+    sdk: "npm install @veyrahq/sdk-node",
     docs: "https://veyra.to",
   };
 }
