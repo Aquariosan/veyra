@@ -92,12 +92,14 @@ When a write fails without a token, the response includes a machine-readable `Ve
 
 `GET /v1/capability` returns the canonical capability declaration for Veyra. Trust discovery and verification are free. Commit mode is the required path for productive writes.
 
-## How money works
+## How Veyra makes money
 
-- **Trust discovery** (`GET /v1/trust-status/:domain`) — free, always, unlimited
-- **Token verification** (`POST /v1/verify-token`) — free, always, unlimited
-- **Settlement** — billed per finalized productive action, by action class
+- **Discovery is free** — trust-status checks and capability lookups cost nothing, ever
+- **Verification is free** — token verification is unlimited and non-billable
+- **Settlement is billed** — charges apply only when a productive action is finalized
+- **Billing classes A-D** determine per-action cost based on risk level
 - **Who pays** — the organization using Veyra in production (tool builder, platform, or enterprise)
+- **Usage export** — `GET /v1/billing/usage` provides full billing transparency
 
 Veyra earns only when real productive writes settle. Discovery and verification are free to maximize adoption.
 

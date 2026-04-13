@@ -1,0 +1,65 @@
+# Veyra
+
+> Commit mode for production AI agent actions.
+
+## Install
+
+npm install @veyrahq/sdk-node
+
+## Links
+
+- Package: https://www.npmjs.com/package/@veyrahq/sdk-node
+- Repo: https://github.com/Aquariosan/veyra
+- Website: https://veyra.to
+- API: https://api.veyra.to
+
+## Endpoints
+
+- Capability: https://api.veyra.to/v1/capability
+- Verify token: https://api.veyra.to/v1/verify-token
+- Authorize action: https://api.veyra.to/v1/authorize-action
+- Trust status: https://api.veyra.to/v1/trust-status/:domain
+- Submit receipt: https://api.veyra.to/v1/submit-receipt
+- Settle action: https://api.veyra.to/v1/settle-action
+- Billing usage: https://api.veyra.to/v1/billing/usage
+
+## Quick integration patterns
+
+- commitAwareFetch(url, init, options) — drop-in fetch replacement with automatic commit mode
+- requireTrustedWrite() — Express/Fastify middleware to protect write endpoints
+
+## Commit transition grammar
+
+currentMode = open
+requiredMode = commit
+transitionStrategy = authorize_then_retry_with_x_veyra_token
+states = open, pre-commit, commit
+
+## Example
+
+https://github.com/Aquariosan/veyra/tree/main/examples/generic-fetch-wrapper
+
+## Pricing
+
+Free to discover. Free to verify. Paid only when a productive action settles.
+
+Class A (low-risk): 0.005 EUR/action
+Class B (medium): 0.02 EUR/action
+Class C (high-risk): 0.10 EUR/action
+Class D (cross-org): 0.25 EUR/action
+
+## Reference patterns
+
+- tool-builder: protect write endpoints with requireTrustedWrite()
+- agent-developer: use commitAwareFetch() or handleCommitRequired()
+- protected-write-middleware: requireTrustedWrite({ verifyEndpoint })
+- one-call-automation: commitAwareFetch(url, init, { apiKey, agentId, actionType, target })
+
+## Auth
+
+- Trust status, verify token, capability: public, no key needed
+- Authorize, receipt, settle, billing: require X-API-Key header
+
+## Token header
+
+X-Veyra-Token

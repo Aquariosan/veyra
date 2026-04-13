@@ -12,6 +12,7 @@ import { trustStatusRoute } from "./routes/trust-status.js";
 import { billingRoute } from "./routes/billing.js";
 import { discoveryHeaders } from "./middleware/discovery-headers.js";
 import { capabilityRoute } from "./routes/capability.js";
+import { publicStatsRoute } from "./routes/public-stats.js";
 
 export async function buildApp() {
   const app = Fastify({ logger: { level: env.LOG_LEVEL } });
@@ -29,6 +30,7 @@ export async function buildApp() {
   await app.register(trustStatusRoute);
   await app.register(billingRoute);
   await app.register(capabilityRoute);
+  await app.register(publicStatsRoute);
 
   return app;
 }

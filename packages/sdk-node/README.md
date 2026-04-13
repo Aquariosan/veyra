@@ -103,6 +103,14 @@ You didn't sell anything. The AI sold it for you.
 - Token verification: **FREE. Always. Unlimited.**
 - Settlement tokens: Issued by Veyra to authorized agents.
 
+## Billing model
+
+- Discovery (`checkTrustStatus`, `fetchCapability`): free, unlimited
+- Verification (`verifyVeyraToken`): free, unlimited, non-billable
+- Settlement: billed per finalized productive action
+- Classes: A (0.005 EUR), B (0.02 EUR), C (0.10 EUR), D (0.25 EUR)
+- Usage export: `GET /v1/billing/usage` with API key
+
 ## Requirements
 
 - Node.js 18+ (native fetch)
