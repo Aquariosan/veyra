@@ -22,19 +22,27 @@ export const billingRoute: FastifyPluginAsync = async (app) => {
       );
 
       const totalEur = rows.reduce(
-        (sum, r) => sum + parseFloat(r.amount_eur),
+        (sum: number, r: { amount_eur: string }) =>
+          sum + parseFloat(r.amount_eur),
         0,
       );
 
       return {
         tenant_id,
         period: { from, to },
-        usage: rows.map((r) => ({
-          date: r.usage_date.toISOString().split("T")[0],
-          action_class: r.action_class,
-          count: r.count,
-          amount_eur: parseFloat(r.amount_eur),
-        })),
+        usage: rows.map(
+          (r: {
+            usage_date: Date;
+            action_class: string;
+            count: number;
+            amount_eur: string;
+          }) => ({
+            date: r.usage_date.toISOString().split("T")[0],
+            action_class: r.action_class,
+            count: r.count,
+            amount_eur: parseFloat(r.amount_eur),
+          }),
+        ),
         total_eur: Math.round(totalEur * 1000000) / 1000000,
       };
     },
