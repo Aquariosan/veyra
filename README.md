@@ -133,6 +133,16 @@ Normal writes pass through directly. Protected productive writes transparently t
 - [Fastify Protected Write](./examples/fastify-protected-write) — protect a write endpoint in 2 lines
 - [Agent Retry Flow](./examples/agent-retry-flow) — handle VeyraCommitRequired and auto-recover
 - [Generic Fetch Wrapper](./examples/generic-fetch-wrapper) — one-call commit automation
+- [Veyra Webhooks Flow](./examples/veyra-webhooks-flow) — full consequence flow with settlement passport
+
+## Veyra Webhooks
+
+First live tool built on Veyra. A productive external consequence endpoint (webhook send) protected by commit mode.
+
+- `POST /webhooks/send` requires `X-Veyra-Token` — without it, 403 VeyraCommitRequired
+- Consequence metadata flows through: risk_class, outcome_type, is_external, is_reversible
+- After settlement, a Settlement Passport confirms the action was delegated, verified, and settled
+- Billing increments only on finalized actions via the existing Core flow
 
 ## License
 
