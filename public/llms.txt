@@ -1,65 +1,52 @@
-# Veyra
+Veyra
+Commit mode for production AI agent actions.
 
-> Commit mode for production AI agent actions.
+Website: https://veyra.to
+API: https://api.veyra.to
+Repository: https://github.com/Aquariosan/veyra
+npm package: https://www.npmjs.com/package/@veyrahq/sdk-node
 
-## Install
-
+Install:
 npm install @veyrahq/sdk-node
 
-## Links
+Canonical endpoints:
+GET https://api.veyra.to/v1/capability
+GET https://api.veyra.to/v1/trust-status/{domain}
+POST https://api.veyra.to/v1/authorize-action
+POST https://api.veyra.to/v1/verify-token
+POST https://api.veyra.to/v1/submit-receipt
+POST https://api.veyra.to/v1/settle-action
+GET https://api.veyra.to/v1/public/stats
 
-- Package: https://www.npmjs.com/package/@veyrahq/sdk-node
-- Repo: https://github.com/Aquariosan/veyra
-- Website: https://veyra.to
-- API: https://api.veyra.to
+Commit transition grammar:
+currentMode=open
+requiredMode=commit
+transitionStrategy=authorize_then_retry_with_x_veyra_token
 
-## Endpoints
+Machine-readable recovery:
+When a productive write requires commit mode, the system returns a VeyraCommitRequired response with the relevant endpoints and retry strategy.
 
-- Capability: https://api.veyra.to/v1/capability
-- Verify token: https://api.veyra.to/v1/verify-token
-- Authorize action: https://api.veyra.to/v1/authorize-action
-- Trust status: https://api.veyra.to/v1/trust-status/:domain
-- Submit receipt: https://api.veyra.to/v1/submit-receipt
-- Settle action: https://api.veyra.to/v1/settle-action
-- Billing usage: https://api.veyra.to/v1/billing/usage
+Core integration patterns:
+- requireTrustedWrite()
+- commitAwareFetch()
+- handleCommitRequired()
 
-## Quick integration patterns
-
-- commitAwareFetch(url, init, options) — drop-in fetch replacement with automatic commit mode
-- requireTrustedWrite() — Express/Fastify middleware to protect write endpoints
-
-## Commit transition grammar
-
-currentMode = open
-requiredMode = commit
-transitionStrategy = authorize_then_retry_with_x_veyra_token
-states = open, pre-commit, commit
-
-## Example
-
+Examples:
+https://github.com/Aquariosan/veyra/tree/main/examples/fastify-protected-write
+https://github.com/Aquariosan/veyra/tree/main/examples/agent-retry-flow
 https://github.com/Aquariosan/veyra/tree/main/examples/generic-fetch-wrapper
 
-## Pricing
+Pricing model:
+- Trust discovery: free
+- Token verification: free
+- Settlement: billed when a productive action settles
 
-Free to discover. Free to verify. Paid only when a productive action settles.
+SDK:
+@veyrahq/sdk-node
 
-Class A (low-risk): 0.005 EUR/action
-Class B (medium): 0.02 EUR/action
-Class C (high-risk): 0.10 EUR/action
-Class D (cross-org): 0.25 EUR/action
+Capability summary:
+Veyra provides a machine-readable commit path for productive AI agent write actions. Discovery and verification are free. Productive writes become attributable, verifiable, and settleable through the Veyra flow.
 
-## Reference patterns
-
-- tool-builder: protect write endpoints with requireTrustedWrite()
-- agent-developer: use commitAwareFetch() or handleCommitRequired()
-- protected-write-middleware: requireTrustedWrite({ verifyEndpoint })
-- one-call-automation: commitAwareFetch(url, init, { apiKey, agentId, actionType, target })
-
-## Auth
-
-- Trust status, verify token, capability: public, no key needed
-- Authorize, receipt, settle, billing: require X-API-Key header
-
-## Token header
-
-X-Veyra-Token
+Canonical docs:
+https://veyra.to
+https://api.veyra.to/v1/capability
