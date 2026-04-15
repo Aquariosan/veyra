@@ -49,7 +49,7 @@ const readTools: PackTool[] = [
   {
     name: "memory_get",
     tool_family: "memory",
-    what: "Get a value by key from persistent memory",
+    what: "Read a single value from the Veyra memory key-value store by key",
     style: "read",
     mode: "open",
     category: "read",
@@ -59,7 +59,7 @@ const readTools: PackTool[] = [
   {
     name: "memory_list",
     tool_family: "memory",
-    what: "List keys in persistent memory, optionally filtered by prefix",
+    what: "List keys in the memory store, optionally filtered by a key prefix",
     style: "read",
     mode: "open",
     category: "read",
@@ -72,7 +72,7 @@ const readTools: PackTool[] = [
   {
     name: "memory_search",
     tool_family: "memory",
-    what: "Search memory by keyword across keys, values, and tags",
+    what: "Full-text search across memory keys, values, and tags",
     style: "read",
     mode: "open",
     category: "read",
@@ -84,7 +84,7 @@ const readTools: PackTool[] = [
   {
     name: "list_notes",
     tool_family: "notes",
-    what: "List all notes, optionally filtered by tag",
+    what: "Browse existing notes, optionally filtered by tag",
     style: "read",
     mode: "open",
     category: "read",
@@ -97,7 +97,7 @@ const readTools: PackTool[] = [
   {
     name: "get_note",
     tool_family: "notes",
-    what: "Retrieve a note by ID",
+    what: "Read one note's full title, content, and tags by ID",
     style: "read",
     mode: "open",
     category: "read",
@@ -107,7 +107,7 @@ const readTools: PackTool[] = [
   {
     name: "search_notes",
     tool_family: "notes",
-    what: "Search notes by query across title, content, and tags",
+    what: "Full-text search over note titles, content, and tags",
     style: "read",
     mode: "open",
     category: "read",
@@ -119,7 +119,7 @@ const readTools: PackTool[] = [
   {
     name: "list_tasks",
     tool_family: "tasks",
-    what: "List tasks, optionally filtered by status, project, or priority",
+    what: "Browse tasks, optionally filtered by status, project, or priority",
     style: "read",
     mode: "open",
     category: "read",
@@ -133,7 +133,7 @@ const readTools: PackTool[] = [
   {
     name: "get_task",
     tool_family: "tasks",
-    what: "Retrieve a task by ID",
+    what: "Read one task's fields (title, status, priority, due) by ID",
     style: "read",
     mode: "open",
     category: "read",
@@ -143,7 +143,7 @@ const readTools: PackTool[] = [
   {
     name: "search_tasks",
     tool_family: "tasks",
-    what: "Search tasks by query across title, project, and tags",
+    what: "Full-text search over task titles, projects, and tags",
     style: "read",
     mode: "open",
     category: "read",
@@ -155,7 +155,7 @@ const readTools: PackTool[] = [
   {
     name: "list_snippets",
     tool_family: "snippets",
-    what: "List code snippets, optionally filtered by language or tag",
+    what: "Browse code snippets, optionally filtered by language or tag",
     style: "read",
     mode: "open",
     category: "read",
@@ -168,7 +168,7 @@ const readTools: PackTool[] = [
   {
     name: "get_snippet",
     tool_family: "snippets",
-    what: "Retrieve a code snippet by ID",
+    what: "Read one snippet's full code and metadata by ID",
     style: "read",
     mode: "open",
     category: "read",
@@ -178,7 +178,7 @@ const readTools: PackTool[] = [
   {
     name: "search_snippets",
     tool_family: "snippets",
-    what: "Search snippets across title, code, and tags",
+    what: "Full-text search over snippet titles, code, and tags",
     style: "read",
     mode: "open",
     category: "read",
@@ -190,7 +190,7 @@ const readTools: PackTool[] = [
   {
     name: "list_bookmarks",
     tool_family: "bookmarks",
-    what: "List bookmarks, optionally filtered by tag or category",
+    what: "Browse saved bookmarks, optionally filtered by tag or category",
     style: "read",
     mode: "open",
     category: "read",
@@ -203,7 +203,7 @@ const readTools: PackTool[] = [
   {
     name: "get_bookmark",
     tool_family: "bookmarks",
-    what: "Retrieve a bookmark by ID",
+    what: "Read one bookmark record by ID",
     style: "read",
     mode: "open",
     category: "read",
@@ -213,7 +213,7 @@ const readTools: PackTool[] = [
   {
     name: "search_bookmarks",
     tool_family: "bookmarks",
-    what: "Search bookmarks across title, URL, and tags",
+    what: "Full-text search over bookmark titles, URLs, and tags",
     style: "read",
     mode: "open",
     category: "read",
@@ -225,7 +225,7 @@ const readTools: PackTool[] = [
   {
     name: "list_contacts",
     tool_family: "contacts",
-    what: "List contacts, optionally filtered by tag or company",
+    what: "Browse contacts, optionally filtered by tag or company",
     style: "read",
     mode: "open",
     category: "read",
@@ -238,7 +238,7 @@ const readTools: PackTool[] = [
   {
     name: "get_contact",
     tool_family: "contacts",
-    what: "Retrieve a contact by ID",
+    what: "Read one contact's full record by ID",
     style: "read",
     mode: "open",
     category: "read",
@@ -248,7 +248,7 @@ const readTools: PackTool[] = [
   {
     name: "search_contacts",
     tool_family: "contacts",
-    what: "Search contacts across name, email, and company",
+    what: "Full-text search over contact names, emails, and companies",
     style: "read",
     mode: "open",
     category: "read",
@@ -260,7 +260,7 @@ const readTools: PackTool[] = [
   {
     name: "list_forms",
     tool_family: "forms",
-    what: "List all forms",
+    what: "Browse every defined form",
     style: "read",
     mode: "open",
     category: "read",
@@ -270,7 +270,7 @@ const readTools: PackTool[] = [
   {
     name: "get_form",
     tool_family: "forms",
-    what: "Retrieve a form definition by ID",
+    what: "Read one form's definition including its fields by ID",
     style: "read",
     mode: "open",
     category: "read",
@@ -280,7 +280,7 @@ const readTools: PackTool[] = [
   {
     name: "get_responses",
     tool_family: "forms",
-    what: "List submitted responses for a form",
+    what: "Read submitted responses for a specific form",
     style: "read",
     mode: "open",
     category: "read",
@@ -292,7 +292,7 @@ const readTools: PackTool[] = [
   {
     name: "list_webhooks",
     tool_family: "webhooks",
-    what: "List registered webhook endpoints",
+    what: "Browse registered outbound webhook endpoints",
     style: "read",
     mode: "open",
     category: "read",
@@ -302,7 +302,7 @@ const readTools: PackTool[] = [
   {
     name: "get_webhook",
     tool_family: "webhooks",
-    what: "Retrieve a registered webhook by ID",
+    what: "Read one registered webhook definition by ID",
     style: "read",
     mode: "open",
     category: "read",
@@ -312,7 +312,7 @@ const readTools: PackTool[] = [
   {
     name: "get_history",
     tool_family: "webhooks",
-    what: "Retrieve delivery history for a webhook",
+    what: "Read past delivery attempts for a webhook (status, timestamps, responses)",
     style: "read",
     mode: "open",
     category: "read",
@@ -331,7 +331,7 @@ const writeTools: PackTool[] = [
   {
     name: "memory_set",
     tool_family: "memory",
-    what: "Store a key-value pair in persistent memory",
+    what: "Write or overwrite a value under a specific key in the memory store",
     style: "write",
     mode: "commit",
     category: "consequence",
@@ -350,7 +350,7 @@ const writeTools: PackTool[] = [
   {
     name: "memory_delete",
     tool_family: "memory",
-    what: "Delete a key from persistent memory",
+    what: "Remove a single key and its value from the memory store",
     style: "destructive",
     mode: "commit",
     category: "consequence",
@@ -365,7 +365,7 @@ const writeTools: PackTool[] = [
   {
     name: "memory_clear",
     tool_family: "memory",
-    what: "Clear all entries from persistent memory",
+    what: "Wipe every entry from the memory store in a single operation",
     style: "destructive",
     mode: "commit",
     category: "consequence",
@@ -382,7 +382,7 @@ const writeTools: PackTool[] = [
   {
     name: "create_note",
     tool_family: "notes",
-    what: "Create a new note",
+    what: "Create a new note record with title, content, and optional tags",
     style: "write",
     mode: "commit",
     category: "consequence",
@@ -401,7 +401,7 @@ const writeTools: PackTool[] = [
   {
     name: "update_note",
     tool_family: "notes",
-    what: "Update an existing note",
+    what: "Modify the title or content of an existing note",
     style: "write",
     mode: "commit",
     category: "consequence",
@@ -420,7 +420,7 @@ const writeTools: PackTool[] = [
   {
     name: "delete_note",
     tool_family: "notes",
-    what: "Delete a note",
+    what: "Permanently delete a note and its content",
     style: "destructive",
     mode: "commit",
     category: "consequence",
@@ -437,7 +437,7 @@ const writeTools: PackTool[] = [
   {
     name: "create_task",
     tool_family: "tasks",
-    what: "Create a task",
+    what: "Create a new task record",
     style: "write",
     mode: "commit",
     category: "consequence",
@@ -457,7 +457,7 @@ const writeTools: PackTool[] = [
   {
     name: "update_task",
     tool_family: "tasks",
-    what: "Update a task's fields",
+    what: "Modify an existing task's fields (title, status, priority, due)",
     style: "write",
     mode: "commit",
     category: "consequence",
@@ -477,7 +477,7 @@ const writeTools: PackTool[] = [
   {
     name: "delete_task",
     tool_family: "tasks",
-    what: "Delete a task",
+    what: "Permanently delete a task record",
     style: "destructive",
     mode: "commit",
     category: "consequence",
@@ -494,7 +494,7 @@ const writeTools: PackTool[] = [
   {
     name: "save_snippet",
     tool_family: "snippets",
-    what: "Save a new code snippet",
+    what: "Save a new code snippet with title, language, and code body",
     style: "write",
     mode: "commit",
     category: "consequence",
@@ -514,7 +514,7 @@ const writeTools: PackTool[] = [
   {
     name: "update_snippet",
     tool_family: "snippets",
-    what: "Update an existing snippet",
+    what: "Modify an existing snippet's code or title",
     style: "write",
     mode: "commit",
     category: "consequence",
@@ -533,7 +533,7 @@ const writeTools: PackTool[] = [
   {
     name: "delete_snippet",
     tool_family: "snippets",
-    what: "Delete a snippet",
+    what: "Permanently delete a code snippet",
     style: "destructive",
     mode: "commit",
     category: "consequence",
@@ -550,7 +550,7 @@ const writeTools: PackTool[] = [
   {
     name: "save_bookmark",
     tool_family: "bookmarks",
-    what: "Save a new bookmark",
+    what: "Save a new bookmark with URL, title, and optional tags or category",
     style: "write",
     mode: "commit",
     category: "consequence",
@@ -570,7 +570,7 @@ const writeTools: PackTool[] = [
   {
     name: "update_bookmark",
     tool_family: "bookmarks",
-    what: "Update a bookmark",
+    what: "Modify an existing bookmark's title or category",
     style: "write",
     mode: "commit",
     category: "consequence",
@@ -589,7 +589,7 @@ const writeTools: PackTool[] = [
   {
     name: "delete_bookmark",
     tool_family: "bookmarks",
-    what: "Delete a bookmark",
+    what: "Permanently delete a bookmark",
     style: "destructive",
     mode: "commit",
     category: "consequence",
@@ -606,7 +606,7 @@ const writeTools: PackTool[] = [
   {
     name: "create_contact",
     tool_family: "contacts",
-    what: "Create a new contact",
+    what: "Create a new contact record with name, email, and company",
     style: "write",
     mode: "commit",
     category: "consequence",
@@ -626,7 +626,7 @@ const writeTools: PackTool[] = [
   {
     name: "update_contact",
     tool_family: "contacts",
-    what: "Update a contact",
+    what: "Modify an existing contact's fields",
     style: "write",
     mode: "commit",
     category: "consequence",
@@ -646,7 +646,7 @@ const writeTools: PackTool[] = [
   {
     name: "delete_contact",
     tool_family: "contacts",
-    what: "Delete a contact",
+    what: "Permanently delete a contact record",
     style: "destructive",
     mode: "commit",
     category: "consequence",
@@ -663,7 +663,7 @@ const writeTools: PackTool[] = [
   {
     name: "create_form",
     tool_family: "forms",
-    what: "Create a new form definition",
+    what: "Create a new form definition with a set of fields",
     style: "write",
     mode: "commit",
     category: "consequence",
@@ -684,7 +684,7 @@ const writeTools: PackTool[] = [
   {
     name: "submit_response",
     tool_family: "forms",
-    what: "Submit a response to a form",
+    what: "Submit a response payload to an existing form definition",
     style: "write",
     mode: "commit",
     category: "consequence",
@@ -702,7 +702,7 @@ const writeTools: PackTool[] = [
   {
     name: "delete_form",
     tool_family: "forms",
-    what: "Delete a form definition and its responses",
+    what: "Permanently delete a form definition and every submitted response",
     style: "destructive",
     mode: "commit",
     category: "consequence",
@@ -719,7 +719,7 @@ const writeTools: PackTool[] = [
   {
     name: "register_webhook",
     tool_family: "webhooks",
-    what: "Register a new webhook endpoint",
+    what: "Register a new outbound webhook endpoint for a given event",
     style: "write",
     mode: "commit",
     category: "consequence",
@@ -738,7 +738,7 @@ const writeTools: PackTool[] = [
   {
     name: "send_webhook",
     tool_family: "webhooks",
-    what: "Send a webhook HTTP POST to a registered endpoint",
+    what: "Trigger a real outbound HTTP POST to a registered webhook URL",
     style: "external",
     mode: "commit",
     category: "consequence",
@@ -756,7 +756,7 @@ const writeTools: PackTool[] = [
   {
     name: "delete_webhook",
     tool_family: "webhooks",
-    what: "Delete a registered webhook endpoint",
+    what: "Permanently delete a registered webhook endpoint",
     style: "destructive",
     mode: "commit",
     category: "consequence",
@@ -791,6 +791,7 @@ export interface PublicToolDescriptor {
   category: ToolCategory;
   side_effect_class: SideEffectClass;
   install_hint: string;
+  usage_hint: string;
   risk_class?: RiskClass;
   is_external?: boolean;
   is_reversible?: boolean;

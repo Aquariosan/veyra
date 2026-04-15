@@ -3,7 +3,7 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import type { ZodRawShape } from "zod";
 
-import { describe } from "./descriptions.js";
+import { describe, selectionHint } from "./descriptions.js";
 import {
   TOOLS,
   TOOL_FAMILIES,
@@ -143,6 +143,7 @@ function publicToolDescriptors(): PublicToolDescriptor[] {
     category: t.category,
     side_effect_class: t.side_effect_class,
     install_hint: `npm install -g veyra-${t.tool_family}`,
+    usage_hint: selectionHint(t.style),
     risk_class: t.risk_class,
     is_external: t.is_external,
     is_reversible: t.is_reversible,
