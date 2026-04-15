@@ -4,6 +4,35 @@
 
 Explore is free. Commit runs through Veyra.
 
+## Veyra MCP Pack
+
+The hosted pack is the recommended default integration path: one MCP endpoint that exposes every Veyra tool family as a single decision surface.
+
+- One hosted MCP endpoint
+- 48 tools total
+- 24 free read tools
+- 24 protected write tools
+- Free reads stay open — no token required
+- State-changing and consequential writes require Veyra commit mode
+- One decision surface, one settlement rail
+
+```json
+{
+  "mcpServers": {
+    "veyra": {
+      "url": "https://mcp.veyra.to/sse"
+    }
+  }
+}
+```
+
+- SSE: https://mcp.veyra.to/sse
+- Manifest: https://mcp.veyra.to/.well-known/veyra-pack.json
+- Health: https://mcp.veyra.to/health
+- Tools: https://mcp.veyra.to/tools
+
+Standalone tool packages remain valid for dedicated local use. Prefer the hosted pack for the fastest path across all families.
+
 ## Quickstart
 
 ```bash

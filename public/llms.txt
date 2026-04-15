@@ -18,6 +18,14 @@ POST https://api.veyra.to/v1/submit-receipt
 POST https://api.veyra.to/v1/settle-action
 GET https://api.veyra.to/v1/public/stats
 
+Hosted MCP Pack (one URL for all tools):
+SSE endpoint: https://mcp.veyra.to/sse
+Pack manifest: https://mcp.veyra.to/.well-known/veyra-pack.json
+Health: https://mcp.veyra.to/health
+Tools: https://mcp.veyra.to/tools
+48 tools total: 24 free reads, 24 protected writes.
+One URL. One decision surface. One settlement rail.
+
 Commit transition grammar:
 currentMode=open
 requiredMode=commit

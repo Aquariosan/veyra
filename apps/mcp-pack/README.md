@@ -4,6 +4,25 @@ All 8 Veyra tool families in one Remote MCP server.
 24 free read tools. 24 protected write tools.
 One URL. One decision surface. One settlement rail.
 
+## Recommended default
+
+Use the hosted pack when you want the fastest MCP integration path across all Veyra tool families. Use standalone tools when you specifically want one local dedicated tool on its own.
+
+```json
+{
+  "mcpServers": {
+    "veyra": {
+      "url": "https://mcp.veyra.to/sse"
+    }
+  }
+}
+```
+
+- SSE: https://mcp.veyra.to/sse
+- Manifest: https://mcp.veyra.to/.well-known/veyra-pack.json
+- Health: https://mcp.veyra.to/health
+- Tools: https://mcp.veyra.to/tools
+
 ## Why this pack exists
 
 Every production agent needs two things: a way to read context cheaply, and a
@@ -52,18 +71,18 @@ Settings → MCP → Add Server → URL: `https://mcp.veyra.to/sse`
 
 - **memory** — `memory_get`, `memory_list`, `memory_search`
 - **notes** — `list_notes`, `get_note`, `search_notes`
-- **tasks** — `list_tasks`, `get_task`
+- **tasks** — `list_tasks`, `get_task`, `search_tasks`
 - **snippets** — `list_snippets`, `get_snippet`, `search_snippets`
 - **bookmarks** — `list_bookmarks`, `get_bookmark`, `search_bookmarks`
 - **contacts** — `list_contacts`, `get_contact`, `search_contacts`
 - **forms** — `list_forms`, `get_form`, `get_responses`
-- **webhooks** — `list_webhooks`, `get_history`
+- **webhooks** — `list_webhooks`, `get_webhook`, `get_history`
 
 ### Protected writes (24)
 
 - **memory** — `memory_set`, `memory_delete`, `memory_clear`
 - **notes** — `create_note`, `update_note`, `delete_note`
-- **tasks** — `create_task`, `update_task`, `complete_task`, `delete_task`
+- **tasks** — `create_task`, `update_task`, `delete_task`
 - **snippets** — `save_snippet`, `update_snippet`, `delete_snippet`
 - **bookmarks** — `save_bookmark`, `update_bookmark`, `delete_bookmark`
 - **contacts** — `create_contact`, `update_contact`, `delete_contact`
