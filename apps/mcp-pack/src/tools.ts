@@ -140,6 +140,16 @@ const readTools: PackTool[] = [
     side_effect_class: "none",
     schema: idSchema,
   },
+  {
+    name: "search_tasks",
+    tool_family: "tasks",
+    what: "Search tasks by query across title, project, and tags",
+    style: "read",
+    mode: "open",
+    category: "read",
+    side_effect_class: "none",
+    schema: { query: z.string() },
+  },
 
   // snippets
   {
@@ -288,6 +298,16 @@ const readTools: PackTool[] = [
     category: "read",
     side_effect_class: "none",
     schema: {},
+  },
+  {
+    name: "get_webhook",
+    tool_family: "webhooks",
+    what: "Retrieve a registered webhook by ID",
+    style: "read",
+    mode: "open",
+    category: "read",
+    side_effect_class: "none",
+    schema: idSchema,
   },
   {
     name: "get_history",
@@ -453,21 +473,6 @@ const writeTools: PackTool[] = [
       status: z.string().optional(),
       priority: z.string().optional(),
     }),
-  },
-  {
-    name: "complete_task",
-    tool_family: "tasks",
-    what: "Mark a task as complete",
-    style: "write",
-    mode: "commit",
-    category: "consequence",
-    side_effect_class: "state_mutation",
-    risk_class: "A",
-    outcome_type: "status_transition",
-    is_external: false,
-    is_reversible: true,
-    operation: "complete_task",
-    schema: withToken(idSchema),
   },
   {
     name: "delete_task",
