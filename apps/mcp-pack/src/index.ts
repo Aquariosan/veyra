@@ -1,6 +1,7 @@
-import http from "node:http";
+import * as http from "node:http";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
+import type { ZodRawShape } from "zod";
 
 import { describe } from "./descriptions.js";
 import {
@@ -98,19 +99,30 @@ async function handleWrite(
 
 // ── Server factory ───────────────────────────────────────────────────
 
+type ToolRegisterFn = (
+  name: string,
+  description: string,
+  schema: ZodRawShape,
+  handler: (args: Record<string, unknown>) => Promise<ToolResult>,
+) => void;
+
 function createServer(): McpServer {
   const server = new McpServer({
     name: "veyra-mcp-pack",
     version: "0.1.0",
   });
 
+  // Cast bypasses McpServer.tool's generic overload, which otherwise
+  // collapses under the union of 48 ZodRawShape schemas.
+  const registerTool = server.tool.bind(server) as unknown as ToolRegisterFn;
+
   for (const tool of TOOLS) {
     const description = describe(tool.what, tool.style);
-    server.tool(
+    registerTool(
       tool.name,
       description,
       tool.schema,
-      async (args: Record<string, unknown>) =>
+      async (args) =>
         tool.category === "read"
           ? handleRead(tool)
           : handleWrite(tool, args ?? {}),
