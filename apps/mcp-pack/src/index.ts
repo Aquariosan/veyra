@@ -41,10 +41,49 @@ const BASE_URL =
   process.env.PUBLIC_BASE_URL ??
   `http://localhost:${PORT}`;
 
-const FREE_COUNT = TOOLS.filter((t) => t.mode === "open").length;
+// Tool counts deliberately exclude the workspace (session-identity) tools so
+// that the public invariant "48 functional tools, 24 free reads, 24 protected
+// writes" stays visible in /health and the pack manifest. Workspace tools are
+// reported separately as session_tools.
+const SESSION_TOOLS_COUNT = TOOLS.filter(
+  (t) => t.tool_family === "workspace",
+).length;
+const FREE_COUNT = TOOLS.filter(
+  (t) => t.mode === "open" && t.tool_family !== "workspace",
+).length;
 const PROTECTED_COUNT = TOOLS.filter((t) => t.mode === "commit").length;
+const FUNCTIONAL_TOTAL = FREE_COUNT + PROTECTED_COUNT;
 
 const BACKED_FAMILIES = new Set(["notes", "tasks", "bookmarks"]);
+
+// workspace_id validation (TEIL A): trim, length-bound, alphanumeric+_/-
+const WORKSPACE_ID_MAX_LEN = 128;
+const WORKSPACE_ID_REGEX = /^[A-Za-z0-9_-]+$/;
+
+type WorkspaceIdCheck =
+  | { ok: true; id: string }
+  | { ok: false; error: string };
+
+function validateWorkspaceId(raw: string): WorkspaceIdCheck {
+  const trimmed = raw.trim();
+  if (trimmed.length === 0) {
+    return { ok: false, error: "workspace_id must be a non-empty string" };
+  }
+  if (trimmed.length > WORKSPACE_ID_MAX_LEN) {
+    return {
+      ok: false,
+      error: `workspace_id too long (max ${WORKSPACE_ID_MAX_LEN} chars)`,
+    };
+  }
+  if (!WORKSPACE_ID_REGEX.test(trimmed)) {
+    return {
+      ok: false,
+      error:
+        "workspace_id must contain only letters, digits, dashes, or underscores — UUIDs preferred",
+    };
+  }
+  return { ok: true, id: trimmed };
+}
 
 // ── Response shapes ──────────────────────────────────────────────────
 
@@ -102,15 +141,17 @@ async function handleWorkspace(
     });
   }
   if (tool.name === "set_workspace") {
-    const next = (asStr(args, "workspace_id") ?? "").trim();
-    if (!next) {
+    const raw = asStr(args, "workspace_id") ?? "";
+    const check = validateWorkspaceId(raw);
+    if (!check.ok) {
       return errorResponse({
         status: "invalid_input",
-        message: "workspace_id (non-empty string) is required.",
+        message: check.error,
+        workspace_id: state.workspace_id,
       });
     }
     const previous = state.workspace_id;
-    state.workspace_id = next;
+    state.workspace_id = check.id;
     return textResponse({
       status: "ok",
       workspace_id: state.workspace_id,
@@ -152,6 +193,7 @@ async function handleBackedRead(
           return errorResponse({
             status: "invalid_input",
             message: "id is required",
+            workspace_id: ws,
           });
         const row = await notesGet(ws, id);
         return textResponse({
@@ -190,6 +232,7 @@ async function handleBackedRead(
           return errorResponse({
             status: "invalid_input",
             message: "id is required",
+            workspace_id: ws,
           });
         const row = await tasksGet(ws, id);
         return textResponse({
@@ -227,6 +270,7 @@ async function handleBackedRead(
           return errorResponse({
             status: "invalid_input",
             message: "id is required",
+            workspace_id: ws,
           });
         const row = await bookmarksGet(ws, id);
         return textResponse({
@@ -277,6 +321,7 @@ async function handleBackedWrite(
           return errorResponse({
             status: "invalid_input",
             message: "title is required",
+            workspace_id: ws,
           });
         const row = await notesCreate(ws, {
           title,
@@ -291,16 +336,15 @@ async function handleBackedWrite(
           return errorResponse({
             status: "invalid_input",
             message: "id is required",
+            workspace_id: ws,
           });
         const row = await notesUpdate(ws, id, {
           title: asStr(args, "title"),
           content: asStr(args, "content"),
           tags: asStr(args, "tags"),
         });
-        return persistedResponse(tool, ws, {
-          item: row,
-          found: row !== null,
-        });
+        if (!row) return notFoundWriteResponse(tool, ws, id, "note");
+        return persistedResponse(tool, ws, { item: row });
       }
       case "delete_note": {
         const id = asStr(args, "id");
@@ -308,9 +352,11 @@ async function handleBackedWrite(
           return errorResponse({
             status: "invalid_input",
             message: "id is required",
+            workspace_id: ws,
           });
         const removed = await notesDelete(ws, id);
-        return persistedResponse(tool, ws, { deleted: removed, id });
+        if (!removed) return notFoundWriteResponse(tool, ws, id, "note");
+        return persistedResponse(tool, ws, { deleted: true, id });
       }
 
       // tasks
@@ -320,6 +366,7 @@ async function handleBackedWrite(
           return errorResponse({
             status: "invalid_input",
             message: "title is required",
+            workspace_id: ws,
           });
         const row = await tasksCreate(ws, {
           title,
@@ -337,6 +384,7 @@ async function handleBackedWrite(
           return errorResponse({
             status: "invalid_input",
             message: "id is required",
+            workspace_id: ws,
           });
         const row = await tasksUpdate(ws, id, {
           title: asStr(args, "title"),
@@ -346,10 +394,8 @@ async function handleBackedWrite(
           project: asStr(args, "project"),
           due: asStr(args, "due"),
         });
-        return persistedResponse(tool, ws, {
-          item: row,
-          found: row !== null,
-        });
+        if (!row) return notFoundWriteResponse(tool, ws, id, "task");
+        return persistedResponse(tool, ws, { item: row });
       }
       case "delete_task": {
         const id = asStr(args, "id");
@@ -357,9 +403,11 @@ async function handleBackedWrite(
           return errorResponse({
             status: "invalid_input",
             message: "id is required",
+            workspace_id: ws,
           });
         const removed = await tasksDelete(ws, id);
-        return persistedResponse(tool, ws, { deleted: removed, id });
+        if (!removed) return notFoundWriteResponse(tool, ws, id, "task");
+        return persistedResponse(tool, ws, { deleted: true, id });
       }
 
       // bookmarks
@@ -369,6 +417,7 @@ async function handleBackedWrite(
           return errorResponse({
             status: "invalid_input",
             message: "url is required",
+            workspace_id: ws,
           });
         const row = await bookmarksCreate(ws, {
           url,
@@ -384,6 +433,7 @@ async function handleBackedWrite(
           return errorResponse({
             status: "invalid_input",
             message: "id is required",
+            workspace_id: ws,
           });
         const row = await bookmarksUpdate(ws, id, {
           url: asStr(args, "url"),
@@ -391,10 +441,8 @@ async function handleBackedWrite(
           tags: asStr(args, "tags"),
           category: asStr(args, "category"),
         });
-        return persistedResponse(tool, ws, {
-          item: row,
-          found: row !== null,
-        });
+        if (!row) return notFoundWriteResponse(tool, ws, id, "bookmark");
+        return persistedResponse(tool, ws, { item: row });
       }
       case "delete_bookmark": {
         const id = asStr(args, "id");
@@ -402,9 +450,11 @@ async function handleBackedWrite(
           return errorResponse({
             status: "invalid_input",
             message: "id is required",
+            workspace_id: ws,
           });
         const removed = await bookmarksDelete(ws, id);
-        return persistedResponse(tool, ws, { deleted: removed, id });
+        if (!removed) return notFoundWriteResponse(tool, ws, id, "bookmark");
+        return persistedResponse(tool, ws, { deleted: true, id });
       }
     }
   } catch (err) {
@@ -419,6 +469,22 @@ async function handleBackedWrite(
     status: "backed_write_not_implemented",
     tool: tool.name,
     workspace_id: ws,
+  });
+}
+
+function notFoundWriteResponse(
+  tool: PackTool,
+  ws: string,
+  id: string,
+  entity: string,
+): ToolResult {
+  return errorResponse({
+    status: "not_found",
+    tool: tool.name,
+    workspace_id: ws,
+    id,
+    message: `No ${entity} with id=${id} exists in this workspace. No state was changed.`,
+    veyra: { verified: true, settled: false },
   });
 }
 
@@ -615,9 +681,10 @@ function buildPackManifest() {
       well_known: `${BASE_URL}/.well-known/veyra-pack.json`,
     },
     counts: {
-      total: TOOLS.length,
+      total: FUNCTIONAL_TOTAL,
       free: FREE_COUNT,
       protected: PROTECTED_COUNT,
+      session_tools: SESSION_TOOLS_COUNT,
     },
     tool_families: TOOL_FAMILIES,
     backed_families: Array.from(BACKED_FAMILIES),
@@ -709,9 +776,10 @@ const httpServer = http.createServer(async (req, res) => {
       ok: true,
       pack: "veyra-mcp-pack",
       version: "0.2.0",
-      tools: TOOLS.length,
+      tools: FUNCTIONAL_TOTAL,
       free: FREE_COUNT,
       protected: PROTECTED_COUNT,
+      session_tools: SESSION_TOOLS_COUNT,
       db_configured: isDbConfigured(),
       backed_families: Array.from(BACKED_FAMILIES),
     });
@@ -736,8 +804,9 @@ const httpServer = http.createServer(async (req, res) => {
 
 httpServer.listen(PORT, async () => {
   console.log(
-    `[veyra-mcp-pack] ready — ${TOOLS.length} tools ` +
-      `(${FREE_COUNT} free / ${PROTECTED_COUNT} protected) on ${BASE_URL}`,
+    `[veyra-mcp-pack] ready — ${FUNCTIONAL_TOTAL} functional tools ` +
+      `(${FREE_COUNT} free / ${PROTECTED_COUNT} protected) + ` +
+      `${SESSION_TOOLS_COUNT} session tools on ${BASE_URL}`,
   );
   console.log(`  mcp:       ${BASE_URL}/sse`);
   console.log(`  health:    ${BASE_URL}/health`);
