@@ -42,6 +42,35 @@ const withToken = (shape: ZodRawShape): ZodRawShape => ({
   ...tokenSchema,
 });
 
+// ── WORKSPACE (session identity) ─────────────────────────────────────
+
+const workspaceTools: PackTool[] = [
+  {
+    name: "get_workspace",
+    tool_family: "workspace",
+    what: "Return the current session's workspace_id. Workspaces isolate stored notes, tasks, and bookmarks per client",
+    style: "session",
+    mode: "open",
+    category: "read",
+    side_effect_class: "none",
+    schema: {},
+  },
+  {
+    name: "set_workspace",
+    tool_family: "workspace",
+    what: "Set the session's workspace_id for this MCP connection so you can restore an existing workspace on reconnect",
+    style: "session",
+    mode: "open",
+    category: "read",
+    side_effect_class: "none",
+    schema: {
+      workspace_id: z
+        .string()
+        .describe("Workspace identifier to activate for this session"),
+    },
+  },
+];
+
 // ── READ TOOLS (24) ──────────────────────────────────────────────────
 
 const readTools: PackTool[] = [
@@ -770,9 +799,10 @@ const writeTools: PackTool[] = [
   },
 ];
 
-export const TOOLS: PackTool[] = [...readTools, ...writeTools];
+export const TOOLS: PackTool[] = [...workspaceTools, ...readTools, ...writeTools];
 
 export const TOOL_FAMILIES = [
+  "workspace",
   "memory",
   "notes",
   "tasks",
@@ -790,7 +820,7 @@ export interface PublicToolDescriptor {
   mode: ToolMode;
   category: ToolCategory;
   side_effect_class: SideEffectClass;
-  install_hint: string;
+  install_hint?: string;
   usage_hint: string;
   risk_class?: RiskClass;
   is_external?: boolean;

@@ -1,8 +1,13 @@
-export type DescriptionStyle = "read" | "write" | "destructive" | "external";
+export type DescriptionStyle =
+  | "read"
+  | "write"
+  | "destructive"
+  | "external"
+  | "session";
 
 // Each suffix must communicate four things to a model choosing tools:
 //   1. authentication posture (free vs. requires veyra_token)
-//   2. side-effect posture   (none / local / destructive / external)
+//   2. side-effect posture   (none / local / destructive / external / session)
 //   3. recovery path          (VeyraCommitRequired for writes)
 //   4. a decision cue         (when to pick or skip this tool)
 
@@ -26,6 +31,11 @@ const EXTERNAL_SUFFIX =
   "reversible once sent. Requires veyra_token. Use this only when you explicitly " +
   "want to produce an external effect — prefer inspecting state and delivery history first.";
 
+const SESSION_SUFFIX =
+  "Free, no authentication needed. Session-scoped only — does not persist any stored record " +
+  "and does not require commit mode. Use this to read or configure which workspace this MCP " +
+  "session operates on.";
+
 export function describe(what: string, style: DescriptionStyle): string {
   switch (style) {
     case "read":
@@ -36,6 +46,8 @@ export function describe(what: string, style: DescriptionStyle): string {
       return `${what}. ${DESTRUCTIVE_SUFFIX}`;
     case "external":
       return `${what}. ${EXTERNAL_SUFFIX}`;
+    case "session":
+      return `${what}. ${SESSION_SUFFIX}`;
   }
 }
 
@@ -46,6 +58,7 @@ const SELECTION_HINTS: Record<DescriptionStyle, string> = {
   write: "Use only when a state change is explicitly intended.",
   destructive: "Not reversible — confirm intent and inspect state first.",
   external: "Triggers a real outbound effect — use only when intended.",
+  session: "Session-local configuration — not a stored state change.",
 };
 
 export function selectionHint(style: DescriptionStyle): string {

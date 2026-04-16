@@ -1,4 +1,5 @@
 import * as http from "node:http";
+import { randomUUID } from "node:crypto";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
 import type { ZodRawShape } from "zod";
@@ -11,6 +12,28 @@ import {
   type PublicToolDescriptor,
 } from "./tools.js";
 import { buildCommitRequired, veyraBaseUrl, verifyToken } from "./veyra.js";
+import { isDbConfigured } from "./db.js";
+import { migrate } from "./migrate.js";
+import {
+  notesList,
+  notesGet,
+  notesSearch,
+  notesCreate,
+  notesUpdate,
+  notesDelete,
+  tasksList,
+  tasksGet,
+  tasksSearch,
+  tasksCreate,
+  tasksUpdate,
+  tasksDelete,
+  bookmarksList,
+  bookmarksGet,
+  bookmarksSearch,
+  bookmarksCreate,
+  bookmarksUpdate,
+  bookmarksDelete,
+} from "./stores.js";
 
 const PORT = Number(process.env.PORT ?? 4200);
 const BASE_URL =
@@ -20,6 +43,8 @@ const BASE_URL =
 
 const FREE_COUNT = TOOLS.filter((t) => t.mode === "open").length;
 const PROTECTED_COUNT = TOOLS.filter((t) => t.mode === "commit").length;
+
+const BACKED_FAMILIES = new Set(["notes", "tasks", "bookmarks"]);
 
 // ── Response shapes ──────────────────────────────────────────────────
 
@@ -37,15 +62,421 @@ function errorResponse(obj: unknown): ToolResult {
   };
 }
 
-// ── Handlers ─────────────────────────────────────────────────────────
+// ── Session state (per SSE connection) ───────────────────────────────
 
-async function handleRead(tool: PackTool): Promise<ToolResult> {
+interface SessionState {
+  workspace_id: string;
+}
+
+function asStr(
+  args: Record<string, unknown>,
+  key: string,
+): string | undefined {
+  const v = args[key];
+  return typeof v === "string" ? v : undefined;
+}
+
+function asNum(
+  args: Record<string, unknown>,
+  key: string,
+): number | undefined {
+  const v = args[key];
+  return typeof v === "number" ? v : undefined;
+}
+
+// ── Workspace identity tools ─────────────────────────────────────────
+
+async function handleWorkspace(
+  tool: PackTool,
+  args: Record<string, unknown>,
+  state: SessionState,
+): Promise<ToolResult> {
+  if (tool.name === "get_workspace") {
+    return textResponse({
+      status: "ok",
+      workspace_id: state.workspace_id,
+      isolation: "private-per-workspace",
+      backed_families: Array.from(BACKED_FAMILIES),
+      message:
+        "Every MCP session starts with a fresh workspace_id. Call set_workspace to restore an existing one.",
+    });
+  }
+  if (tool.name === "set_workspace") {
+    const next = (asStr(args, "workspace_id") ?? "").trim();
+    if (!next) {
+      return errorResponse({
+        status: "invalid_input",
+        message: "workspace_id (non-empty string) is required.",
+      });
+    }
+    const previous = state.workspace_id;
+    state.workspace_id = next;
+    return textResponse({
+      status: "ok",
+      workspace_id: state.workspace_id,
+      previous_workspace_id: previous,
+      message:
+        "Workspace identity updated for this session. Subsequent reads and writes scope to this workspace.",
+    });
+  }
+  return textResponse({
+    status: "unsupported_workspace_tool",
+    tool: tool.name,
+  });
+}
+
+// ── Backed reads (notes / tasks / bookmarks) ─────────────────────────
+
+async function handleBackedRead(
+  tool: PackTool,
+  args: Record<string, unknown>,
+  ws: string,
+): Promise<ToolResult> {
+  try {
+    switch (tool.name) {
+      // notes
+      case "list_notes": {
+        const rows = await notesList(ws, {
+          tag: asStr(args, "tag"),
+          limit: asNum(args, "limit"),
+        });
+        return textResponse({
+          items: rows,
+          count: rows.length,
+          workspace_id: ws,
+        });
+      }
+      case "get_note": {
+        const id = asStr(args, "id");
+        if (!id)
+          return errorResponse({
+            status: "invalid_input",
+            message: "id is required",
+          });
+        const row = await notesGet(ws, id);
+        return textResponse({
+          item: row,
+          found: row !== null,
+          workspace_id: ws,
+        });
+      }
+      case "search_notes": {
+        const q = asStr(args, "query") ?? "";
+        const rows = await notesSearch(ws, q);
+        return textResponse({
+          items: rows,
+          count: rows.length,
+          query: q,
+          workspace_id: ws,
+        });
+      }
+
+      // tasks
+      case "list_tasks": {
+        const rows = await tasksList(ws, {
+          status: asStr(args, "status"),
+          project: asStr(args, "project"),
+          priority: asStr(args, "priority"),
+        });
+        return textResponse({
+          items: rows,
+          count: rows.length,
+          workspace_id: ws,
+        });
+      }
+      case "get_task": {
+        const id = asStr(args, "id");
+        if (!id)
+          return errorResponse({
+            status: "invalid_input",
+            message: "id is required",
+          });
+        const row = await tasksGet(ws, id);
+        return textResponse({
+          item: row,
+          found: row !== null,
+          workspace_id: ws,
+        });
+      }
+      case "search_tasks": {
+        const q = asStr(args, "query") ?? "";
+        const rows = await tasksSearch(ws, q);
+        return textResponse({
+          items: rows,
+          count: rows.length,
+          query: q,
+          workspace_id: ws,
+        });
+      }
+
+      // bookmarks
+      case "list_bookmarks": {
+        const rows = await bookmarksList(ws, {
+          tag: asStr(args, "tag"),
+          category: asStr(args, "category"),
+        });
+        return textResponse({
+          items: rows,
+          count: rows.length,
+          workspace_id: ws,
+        });
+      }
+      case "get_bookmark": {
+        const id = asStr(args, "id");
+        if (!id)
+          return errorResponse({
+            status: "invalid_input",
+            message: "id is required",
+          });
+        const row = await bookmarksGet(ws, id);
+        return textResponse({
+          item: row,
+          found: row !== null,
+          workspace_id: ws,
+        });
+      }
+      case "search_bookmarks": {
+        const q = asStr(args, "query") ?? "";
+        const rows = await bookmarksSearch(ws, q);
+        return textResponse({
+          items: rows,
+          count: rows.length,
+          query: q,
+          workspace_id: ws,
+        });
+      }
+    }
+  } catch (err) {
+    return errorResponse({
+      status: "db_error",
+      tool: tool.name,
+      workspace_id: ws,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+  return textResponse({
+    status: "backed_read_not_implemented",
+    tool: tool.name,
+    workspace_id: ws,
+  });
+}
+
+// ── Backed writes (notes / tasks / bookmarks) ────────────────────────
+
+async function handleBackedWrite(
+  tool: PackTool,
+  args: Record<string, unknown>,
+  ws: string,
+): Promise<ToolResult> {
+  try {
+    switch (tool.name) {
+      // notes
+      case "create_note": {
+        const title = asStr(args, "title");
+        if (!title)
+          return errorResponse({
+            status: "invalid_input",
+            message: "title is required",
+          });
+        const row = await notesCreate(ws, {
+          title,
+          content: asStr(args, "content"),
+          tags: asStr(args, "tags"),
+        });
+        return persistedResponse(tool, ws, { item: row });
+      }
+      case "update_note": {
+        const id = asStr(args, "id");
+        if (!id)
+          return errorResponse({
+            status: "invalid_input",
+            message: "id is required",
+          });
+        const row = await notesUpdate(ws, id, {
+          title: asStr(args, "title"),
+          content: asStr(args, "content"),
+          tags: asStr(args, "tags"),
+        });
+        return persistedResponse(tool, ws, {
+          item: row,
+          found: row !== null,
+        });
+      }
+      case "delete_note": {
+        const id = asStr(args, "id");
+        if (!id)
+          return errorResponse({
+            status: "invalid_input",
+            message: "id is required",
+          });
+        const removed = await notesDelete(ws, id);
+        return persistedResponse(tool, ws, { deleted: removed, id });
+      }
+
+      // tasks
+      case "create_task": {
+        const title = asStr(args, "title");
+        if (!title)
+          return errorResponse({
+            status: "invalid_input",
+            message: "title is required",
+          });
+        const row = await tasksCreate(ws, {
+          title,
+          description: asStr(args, "description"),
+          status: asStr(args, "status"),
+          priority: asStr(args, "priority"),
+          project: asStr(args, "project"),
+          due: asStr(args, "due"),
+        });
+        return persistedResponse(tool, ws, { item: row });
+      }
+      case "update_task": {
+        const id = asStr(args, "id");
+        if (!id)
+          return errorResponse({
+            status: "invalid_input",
+            message: "id is required",
+          });
+        const row = await tasksUpdate(ws, id, {
+          title: asStr(args, "title"),
+          description: asStr(args, "description"),
+          status: asStr(args, "status"),
+          priority: asStr(args, "priority"),
+          project: asStr(args, "project"),
+          due: asStr(args, "due"),
+        });
+        return persistedResponse(tool, ws, {
+          item: row,
+          found: row !== null,
+        });
+      }
+      case "delete_task": {
+        const id = asStr(args, "id");
+        if (!id)
+          return errorResponse({
+            status: "invalid_input",
+            message: "id is required",
+          });
+        const removed = await tasksDelete(ws, id);
+        return persistedResponse(tool, ws, { deleted: removed, id });
+      }
+
+      // bookmarks
+      case "save_bookmark": {
+        const url = asStr(args, "url");
+        if (!url)
+          return errorResponse({
+            status: "invalid_input",
+            message: "url is required",
+          });
+        const row = await bookmarksCreate(ws, {
+          url,
+          title: asStr(args, "title"),
+          tags: asStr(args, "tags"),
+          category: asStr(args, "category"),
+        });
+        return persistedResponse(tool, ws, { item: row });
+      }
+      case "update_bookmark": {
+        const id = asStr(args, "id");
+        if (!id)
+          return errorResponse({
+            status: "invalid_input",
+            message: "id is required",
+          });
+        const row = await bookmarksUpdate(ws, id, {
+          url: asStr(args, "url"),
+          title: asStr(args, "title"),
+          tags: asStr(args, "tags"),
+          category: asStr(args, "category"),
+        });
+        return persistedResponse(tool, ws, {
+          item: row,
+          found: row !== null,
+        });
+      }
+      case "delete_bookmark": {
+        const id = asStr(args, "id");
+        if (!id)
+          return errorResponse({
+            status: "invalid_input",
+            message: "id is required",
+          });
+        const removed = await bookmarksDelete(ws, id);
+        return persistedResponse(tool, ws, { deleted: removed, id });
+      }
+    }
+  } catch (err) {
+    return errorResponse({
+      status: "db_error",
+      tool: tool.name,
+      workspace_id: ws,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+  return textResponse({
+    status: "backed_write_not_implemented",
+    tool: tool.name,
+    workspace_id: ws,
+  });
+}
+
+function persistedResponse(
+  tool: PackTool,
+  ws: string,
+  extra: Record<string, unknown>,
+): ToolResult {
+  return textResponse({
+    status: "committed",
+    tool: tool.name,
+    operation: tool.operation ?? tool.name,
+    side_effect_class: tool.side_effect_class,
+    persisted: true,
+    workspace_id: ws,
+    ...extra,
+    consequence_metadata: {
+      risk_class: tool.risk_class,
+      outcome_type: tool.outcome_type,
+      is_external: tool.is_external ?? false,
+      is_reversible: tool.is_reversible ?? false,
+    },
+    veyra: {
+      verified: true,
+      settled: false,
+      hint: "Submit a receipt via /v1/submit-receipt to finalize settlement.",
+    },
+  });
+}
+
+// ── Top-level read / write dispatch ──────────────────────────────────
+
+async function handleRead(
+  tool: PackTool,
+  args: Record<string, unknown>,
+  state: SessionState,
+): Promise<ToolResult> {
+  if (BACKED_FAMILIES.has(tool.tool_family)) {
+    if (!isDbConfigured()) {
+      return textResponse({
+        status: "not_configured",
+        tool: tool.name,
+        tool_family: tool.tool_family,
+        workspace_id: state.workspace_id,
+        message:
+          "DATABASE_URL is not set on this pack instance. The hosted pack needs a shared Postgres to back this family.",
+      });
+    }
+    return handleBackedRead(tool, args, state.workspace_id);
+  }
+
+  // Other families: no local store attached on the hosted pack surface.
   return textResponse({
     status: "not_configured",
     tool: tool.name,
     tool_family: tool.tool_family,
     message:
-      "No standalone local store is attached to this hosted pack. The pack exposes the Veyra tool surface; real data lives in the standalone tool.",
+      "No standalone local store is attached to this hosted pack for this family.",
     next_step: `Install the standalone tool for real local data: npm install -g veyra-${tool.tool_family}`,
   });
 }
@@ -53,10 +484,11 @@ async function handleRead(tool: PackTool): Promise<ToolResult> {
 async function handleWrite(
   tool: PackTool,
   args: Record<string, unknown>,
+  state: SessionState,
 ): Promise<ToolResult> {
   const token =
     typeof args.veyra_token === "string" && args.veyra_token.length > 0
-      ? args.veyra_token
+      ? (args.veyra_token as string)
       : null;
 
   if (!token) {
@@ -74,11 +506,28 @@ async function handleWrite(
     });
   }
 
+  if (BACKED_FAMILIES.has(tool.tool_family)) {
+    if (!isDbConfigured()) {
+      return textResponse({
+        status: "persistence_unavailable",
+        tool: tool.name,
+        tool_family: tool.tool_family,
+        workspace_id: state.workspace_id,
+        message:
+          "Token verified but DATABASE_URL is not configured on this pack instance. No persistence possible.",
+        veyra: { verified: true, settled: false },
+      });
+    }
+    return handleBackedWrite(tool, args, state.workspace_id);
+  }
+
+  // Simulated write for families without backend.
   return textResponse({
     status: "authorized_simulation",
     tool: tool.name,
     operation: tool.operation ?? tool.name,
     side_effect_class: tool.side_effect_class,
+    workspace_id: state.workspace_id,
     message:
       `Token verified. The hosted MCP pack acknowledges the ${tool.name} intent ` +
       `but does not carry a local store or outbound transport for ${tool.tool_family}. ` +
@@ -97,7 +546,7 @@ async function handleWrite(
   });
 }
 
-// ── Server factory ───────────────────────────────────────────────────
+// ── Server factory (per SSE session) ─────────────────────────────────
 
 type ToolRegisterFn = (
   name: string,
@@ -106,30 +555,29 @@ type ToolRegisterFn = (
   handler: (args: Record<string, unknown>) => Promise<ToolResult>,
 ) => void;
 
-function createServer(): McpServer {
+function createSession(): { server: McpServer; state: SessionState } {
+  const state: SessionState = { workspace_id: randomUUID() };
   const server = new McpServer({
     name: "veyra-mcp-pack",
-    version: "0.1.0",
+    version: "0.2.0",
   });
 
   // Cast bypasses McpServer.tool's generic overload, which otherwise
-  // collapses under the union of 48 ZodRawShape schemas.
+  // collapses under the union of many ZodRawShape schemas.
   const registerTool = server.tool.bind(server) as unknown as ToolRegisterFn;
 
   for (const tool of TOOLS) {
     const description = describe(tool.what, tool.style);
-    registerTool(
-      tool.name,
-      description,
-      tool.schema,
-      async (args) =>
-        tool.category === "read"
-          ? handleRead(tool)
-          : handleWrite(tool, args ?? {}),
-    );
+    registerTool(tool.name, description, tool.schema, async (args) => {
+      const a = (args ?? {}) as Record<string, unknown>;
+      if (tool.tool_family === "workspace")
+        return handleWorkspace(tool, a, state);
+      if (tool.category === "read") return handleRead(tool, a, state);
+      return handleWrite(tool, a, state);
+    });
   }
 
-  return server;
+  return { server, state };
 }
 
 // ── Public discovery payloads ────────────────────────────────────────
@@ -142,7 +590,10 @@ function publicToolDescriptors(): PublicToolDescriptor[] {
     mode: t.mode,
     category: t.category,
     side_effect_class: t.side_effect_class,
-    install_hint: `npm install -g veyra-${t.tool_family}`,
+    install_hint:
+      t.tool_family === "workspace"
+        ? undefined
+        : `npm install -g veyra-${t.tool_family}`,
     usage_hint: selectionHint(t.style),
     risk_class: t.risk_class,
     is_external: t.is_external,
@@ -154,7 +605,7 @@ function buildPackManifest() {
   const base = veyraBaseUrl();
   return {
     pack: "veyra-mcp-pack",
-    version: "0.1.0",
+    version: "0.2.0",
     protocol: "mcp",
     transport: "sse",
     mcp_endpoint: `${BASE_URL}/sse`,
@@ -169,6 +620,8 @@ function buildPackManifest() {
       protected: PROTECTED_COUNT,
     },
     tool_families: TOOL_FAMILIES,
+    backed_families: Array.from(BACKED_FAMILIES),
+    db_configured: isDbConfigured(),
     tools: publicToolDescriptors(),
     veyra: {
       api_base: base,
@@ -185,10 +638,18 @@ function buildPackManifest() {
 
 // ── HTTP server (MCP SSE + discovery) ────────────────────────────────
 
-type Session = { server: McpServer; transport: SSEServerTransport };
+type Session = {
+  server: McpServer;
+  state: SessionState;
+  transport: SSEServerTransport;
+};
 const sessions = new Map<string, Session>();
 
-function writeJson(res: http.ServerResponse, status: number, body: unknown) {
+function writeJson(
+  res: http.ServerResponse,
+  status: number,
+  body: unknown,
+) {
   res.writeHead(status, {
     "Content-Type": "application/json; charset=utf-8",
     "Access-Control-Allow-Origin": "*",
@@ -199,7 +660,6 @@ function writeJson(res: http.ServerResponse, status: number, body: unknown) {
 const httpServer = http.createServer(async (req, res) => {
   const requestUrl = new URL(req.url ?? "/", BASE_URL);
 
-  // CORS preflight (for browser-based MCP clients)
   if (req.method === "OPTIONS") {
     res.writeHead(204, {
       "Access-Control-Allow-Origin": "*",
@@ -210,11 +670,10 @@ const httpServer = http.createServer(async (req, res) => {
     return;
   }
 
-  // MCP SSE endpoint (server → client)
   if (req.method === "GET" && requestUrl.pathname === "/sse") {
-    const server = createServer();
+    const { server, state } = createSession();
     const transport = new SSEServerTransport("/messages", res);
-    sessions.set(transport.sessionId, { server, transport });
+    sessions.set(transport.sessionId, { server, state, transport });
     const cleanup = () => {
       sessions.delete(transport.sessionId);
       server.close().catch(() => {});
@@ -229,7 +688,6 @@ const httpServer = http.createServer(async (req, res) => {
     return;
   }
 
-  // MCP client → server POST messages
   if (req.method === "POST" && requestUrl.pathname === "/messages") {
     const sid = requestUrl.searchParams.get("sessionId");
     const session = sid ? sessions.get(sid) : undefined;
@@ -246,14 +704,16 @@ const httpServer = http.createServer(async (req, res) => {
     return;
   }
 
-  // Discovery surface
   if (req.method === "GET" && requestUrl.pathname === "/health") {
     writeJson(res, 200, {
       ok: true,
       pack: "veyra-mcp-pack",
+      version: "0.2.0",
       tools: TOOLS.length,
       free: FREE_COUNT,
       protected: PROTECTED_COUNT,
+      db_configured: isDbConfigured(),
+      backed_families: Array.from(BACKED_FAMILIES),
     });
     return;
   }
@@ -274,7 +734,7 @@ const httpServer = http.createServer(async (req, res) => {
   writeJson(res, 404, { error: "not_found", path: requestUrl.pathname });
 });
 
-httpServer.listen(PORT, () => {
+httpServer.listen(PORT, async () => {
   console.log(
     `[veyra-mcp-pack] ready — ${TOOLS.length} tools ` +
       `(${FREE_COUNT} free / ${PROTECTED_COUNT} protected) on ${BASE_URL}`,
@@ -283,4 +743,17 @@ httpServer.listen(PORT, () => {
   console.log(`  health:    ${BASE_URL}/health`);
   console.log(`  tools:     ${BASE_URL}/tools`);
   console.log(`  manifest:  ${BASE_URL}/.well-known/veyra-pack.json`);
+
+  const migrationResult = await migrate();
+  if (migrationResult.ok) {
+    console.log(
+      `[veyra-mcp-pack] migrations applied (${migrationResult.statements} statements)`,
+    );
+  } else {
+    console.log(
+      `[veyra-mcp-pack] migrations skipped: ${migrationResult.reason}` +
+        (migrationResult.error ? ` — ${migrationResult.error}` : ""),
+    );
+  }
 });
+
