@@ -1,0 +1,53 @@
+name: veyra-mcp-pack
+displayName: Veyra MCP Pack
+description: >
+  All 8 Veyra tool families in one hosted MCP server.
+  24 free read tools, 24 protected write tools.
+  Notes, tasks, and bookmarks backed by cloud Postgres.
+  Free reads stay open. Writes require Veyra commit mode.
+
+vendor:
+  name: Veyra
+  url: https://veyra.to
+
+icon: https://veyra.to/icon.png
+
+serverUrl: https://mcp.veyra.to/sse
+
+transport: sse
+
+tools: 48
+
+categories:
+  - productivity
+  - memory
+  - notes
+  - tasks
+  - bookmarks
+  - contacts
+  - forms
+  - webhooks
+  - ai-agents
+
+keywords:
+  - mcp
+  - model-context-protocol
+  - veyra
+  - commit-mode
+  - ai-agents
+  - notes
+  - tasks
+  - bookmarks
+  - memory
+  - contacts
+  - forms
+  - webhooks
+
+links:
+  repository: https://github.com/Aquariosan/veyra
+  documentation: https://veyra.to
+  npm: https://www.npmjs.com/package/@veyrahq/sdk-node
+  manifest: https://mcp.veyra.to/.well-known/veyra-pack.json
+  health: https://mcp.veyra.to/health
+
+license: MIT

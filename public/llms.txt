@@ -20,11 +20,13 @@ GET https://api.veyra.to/v1/public/stats
 
 Hosted MCP Pack (one URL for all tools):
 SSE endpoint: https://mcp.veyra.to/sse
+Command: npx veyrahq
 Pack manifest: https://mcp.veyra.to/.well-known/veyra-pack.json
 Health: https://mcp.veyra.to/health
 Tools: https://mcp.veyra.to/tools
+Server card: https://mcp.veyra.to/.well-known/mcp/server-card.json
 48 tools total: 24 free reads, 24 protected writes.
-One URL. One decision surface. One settlement rail.
+One URL. One command. One decision surface. One settlement rail.
 
 Commit transition grammar:
 currentMode=open

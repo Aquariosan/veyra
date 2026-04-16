@@ -1,0 +1,40 @@
+{
+  "name": "veyrahq",
+  "version": "0.1.0",
+  "description": "Local stdio launcher for the Veyra Hosted MCP Pack — npx veyrahq connects you to 48 tools at one URL.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "veyrahq": "./bin/veyrahq.js"
+  },
+  "files": [
+    "bin",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "veyra",
+    "ai-agents",
+    "remote-mcp",
+    "stdio-proxy",
+    "mcp-server",
+    "mcp-remote"
+  ],
+  "homepage": "https://veyra.to",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Aquariosan/veyra",
+    "directory": "packages/veyrahq"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "mcp-remote": "^0.1.38"
+  }
+}

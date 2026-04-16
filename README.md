@@ -16,6 +16,8 @@ The hosted pack is the recommended default integration path: one MCP endpoint th
 - State-changing and consequential writes require Veyra commit mode
 - One decision surface, one settlement rail
 
+**Remote URL** (Claude Desktop, Cursor, OpenAI, any MCP client with URL support):
+
 ```json
 {
   "mcpServers": {
@@ -26,7 +28,21 @@ The hosted pack is the recommended default integration path: one MCP endpoint th
 }
 ```
 
+**Command** (Claude Desktop, Claude Code, clients that prefer command+args):
+
+```json
+{
+  "mcpServers": {
+    "veyra": {
+      "command": "npx",
+      "args": ["veyrahq"]
+    }
+  }
+}
+```
+
 - SSE: https://mcp.veyra.to/sse
+- Command: `npx veyrahq`
 - Manifest: https://mcp.veyra.to/.well-known/veyra-pack.json
 - Health: https://mcp.veyra.to/health
 - Tools: https://mcp.veyra.to/tools

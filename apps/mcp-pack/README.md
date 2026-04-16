@@ -49,7 +49,7 @@ tools. For real local persistence install the standalone tools directly.
 MCP Server URL: https://mcp.veyra.to/sse
 ```
 
-### Claude Desktop
+### Claude Desktop (remote URL)
 
 ```json
 {
@@ -61,9 +61,23 @@ MCP Server URL: https://mcp.veyra.to/sse
 }
 ```
 
+### Claude Desktop / Claude Code (command)
+
+```json
+{
+  "mcpServers": {
+    "veyra": {
+      "command": "npx",
+      "args": ["veyrahq"]
+    }
+  }
+}
+```
+
 ### Cursor
 
 Settings → MCP → Add Server → URL: `https://mcp.veyra.to/sse`
+Or: Command: `npx veyrahq`
 
 ## Tool groups
 

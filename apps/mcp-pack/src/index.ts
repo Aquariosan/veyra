@@ -700,6 +700,17 @@ function buildPackManifest() {
     },
     docs_url: "https://veyra.to",
     sdk: "npm install @veyrahq/sdk-node",
+    npx_command: "npx veyrahq",
+    client_examples: {
+      remote_url: {
+        mcpServers: { veyra: { url: `${BASE_URL}/sse` } },
+      },
+      command: {
+        mcpServers: {
+          veyra: { command: "npx", args: ["veyrahq"] },
+        },
+      },
+    },
   };
 }
 
@@ -796,6 +807,52 @@ const httpServer = http.createServer(async (req, res) => {
     requestUrl.pathname === "/.well-known/veyra-pack.json"
   ) {
     writeJson(res, 200, buildPackManifest());
+    return;
+  }
+
+  // Smithery / MCP Registry server card
+  if (
+    req.method === "GET" &&
+    requestUrl.pathname === "/.well-known/mcp/server-card.json"
+  ) {
+    writeJson(res, 200, {
+      name: "veyra-mcp-pack",
+      display_name: "Veyra MCP Pack",
+      description:
+        "All 8 Veyra tool families in one hosted MCP server. " +
+        "24 free read tools, 24 protected write tools. " +
+        "Notes, tasks, and bookmarks backed by cloud Postgres. " +
+        "Free reads stay open. Writes require Veyra commit mode.",
+      version: "0.2.0",
+      server_url: `${BASE_URL}/sse`,
+      transport: "sse",
+      tools: FUNCTIONAL_TOTAL,
+      free_tools: FREE_COUNT,
+      protected_tools: PROTECTED_COUNT,
+      session_tools: SESSION_TOOLS_COUNT,
+      npx_command: "npx veyrahq",
+      categories: [
+        "productivity",
+        "memory",
+        "notes",
+        "tasks",
+        "bookmarks",
+        "contacts",
+        "forms",
+        "webhooks",
+      ],
+      vendor: { name: "Veyra", url: "https://veyra.to" },
+      license: "MIT",
+      links: {
+        homepage: "https://veyra.to",
+        repository: "https://github.com/Aquariosan/veyra",
+        npm_sdk: "https://www.npmjs.com/package/@veyrahq/sdk-node",
+        npm_launcher: "https://www.npmjs.com/package/veyrahq",
+        health: `${BASE_URL}/health`,
+        tools: `${BASE_URL}/tools`,
+        manifest: `${BASE_URL}/.well-known/veyra-pack.json`,
+      },
+    });
     return;
   }
 
